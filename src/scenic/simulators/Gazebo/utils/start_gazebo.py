@@ -22,8 +22,8 @@ def PauseGazebo():
     """
     Pauses Gazebo
     """
-    rospy.wait_for_service("/gazebo/pause_physics")
-    pause = rospy.ServiceProxy("/gazebo/pause_physics", Empty)
+    rospy.wait_for_service("/pause_physics")
+    pause = rospy.ServiceProxy("/pause_physics", Empty)
     pause()
     return
 
@@ -32,8 +32,8 @@ def UnpauseGazebo():
     """
     Unpauses Gazebo
     """
-    rospy.wait_for_service("/gazebo/unpause_physics")
-    unpause = rospy.ServiceProxy("/gazebo/unpause_physics", Empty)
+    rospy.wait_for_service("/unpause_physics")
+    unpause = rospy.ServiceProxy("/unpause_physics", Empty)
     unpause()
     return
 
@@ -44,12 +44,12 @@ def ResetGazeboWorldAndSim():
     Probably NOT the function you want to call in most cases
     This might cause the robot and ROS to go wild
     """
-    rospy.wait_for_service("/gazebo/reset_world")
-    reset_world = rospy.ServiceProxy("/gazebo/reset_world", Empty)
+    rospy.wait_for_service("/reset_world")
+    reset_world = rospy.ServiceProxy("/reset_world", Empty)
     reset_world()
 
-    rospy.wait_for_service("/gazebo/reset_simulation")
-    reset_simulation = rospy.ServiceProxy("/gazebo/reset_simulation", Empty)
+    rospy.wait_for_service("/reset_simulation")
+    reset_simulation = rospy.ServiceProxy("/reset_simulation", Empty)
     reset_simulation()
     return
 
@@ -59,7 +59,7 @@ def ResetGazeboWorld():
     Resets the Gazebo world. Simulation time is NOT reset
     Probably the Reset function that you want
     """
-    rospy.wait_for_service("/gazebo/reset_world")
-    reset_world = rospy.ServiceProxy("/gazebo/reset_world", Empty)
+    rospy.wait_for_service("/reset_world")
+    reset_world = rospy.ServiceProxy("/reset_world", Empty)
     reset_world()
     return
