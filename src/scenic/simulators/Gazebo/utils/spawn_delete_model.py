@@ -4,7 +4,7 @@ import os
 import xml
 
 from gazebo_msgs.msg import ModelStates
-from gazebo_msgs.srv import DeleteModel
+from gazebo_msgs.srv import DeleteEntity
 from gazebo_ros import gazebo_interface
 from geometry_msgs.msg import Pose, Quaternion
 
@@ -20,9 +20,9 @@ def DeleteObject(name, sim=None):
     Args:
     String name: the name of the object
     """
-    rospy.wait_for_service("/gazebo/delete_model")
+    rospy.wait_for_service("/delete_entity")
     try:
-        delete_model = rospy.ServiceProxy("/gazebo/delete_model", DeleteModel)
+        delete_model = rospy.ServiceProxy("/delete_entity", DeleteEntity)
         resp = delete_model(name)
         if sim:
             if name in sim.collision_objects:
