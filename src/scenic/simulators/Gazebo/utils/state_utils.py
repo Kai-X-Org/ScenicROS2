@@ -1,9 +1,9 @@
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import (
     GetModelProperties,
-    GetModelState,
+    GetEntityState,
     GetWorldProperties,
-    SetModelState,
+    SetEntityState,
 )
 from geometry_msgs.msg import (
     Pose,
@@ -85,8 +85,8 @@ def GetObjectGazeboState(obj, frame="map"):
         except:
             frame = frame
 
-        rospy.wait_for_service("/gazebo/get_model_state")
-        get_model_state = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
+        rospy.wait_for_service("/gazebo/get_entity_state")
+        get_model_state = rospy.ServiceProxy("/gazebo/get_entity_state", GetEntityState)
         state = get_model_state(obj, frame)
         return state
 
@@ -118,8 +118,8 @@ def SetModelPose(
     except:
         frame = ref_frame_id
 
-    rospy.wait_for_service("/gazebo/get_model_state")
-    get_model_state = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
+    rospy.wait_for_service("/gazebo/get_entity_state")
+    get_model_state = rospy.ServiceProxy("/gazebo/get_entity_state", GetEntityState)
     model_state = get_model_state(tgt_model, "")
 
     quat = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
@@ -139,8 +139,8 @@ def SetModelPose(
     new_model_state.twist = geometry_msgs.Twist()
     new_model_state.reference_frame = frame
 
-    rospy.wait_for_service("/gazebo/set_model_state")
-    set_state = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
+    rospy.wait_for_service("/gazebo/set_entity_state")
+    set_state = rospy.ServiceProxy("/gazebo/set_entity_state", SetEntityState)
     resp = set_state(new_model_state)
     return (resp.success, resp.status_message)
 
