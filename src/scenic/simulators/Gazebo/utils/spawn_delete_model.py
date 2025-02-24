@@ -2,35 +2,121 @@
 
 import os
 import xml
+import math
+from xml.etree import ElementTree
 
 from gazebo_msgs.msg import ModelStates
-from gazebo_msgs.srv import DeleteEntity
+from gazebo_msgs.srv import SpawnEntity, DeleteEntity
 from gazebo_ros import gazebo_interface
 from geometry_msgs.msg import Pose, Quaternion
 
-import rospy
-from tf.transformations import quaternion_from_euler
+# import rospy
+import rclpy
+# from tf.transformations import quaternion_from_euler
 
 import scenic
 
 
-def DeleteObject(name, sim=None):
+def DeleteObject(name, node=None, sim=None):
     """
     deletes the object from Gazebo and collision world
     Args:
     String name: the name of the object
     """
-    rospy.wait_for_service("/delete_entity")
+    # rospy.wait_for_service("/delete_entity")
+
+
     try:
-        delete_model = rospy.ServiceProxy("/delete_entity", DeleteEntity)
-        resp = delete_model(name)
-        if sim:
-            if name in sim.collision_objects:
-                sim.collision_world.remove(sim.collision_objects[name])
+        client = node.create_client(DeleteEntity, "/delete_entity")
+        while not client.wait_for_service(timeout_sec=1.0):
+            node.get_logger().info('service not available, waiting again...')
+
+        resp = client.call_async(name)
         return (resp.success, resp.status_message)
+
     except Exception as e:
-        rospy.logerr("DeleteObject Fail Go")
+        node.get_logger().error("DeleteObject Fail Go")
         raise RuntimeError(f"Failed to delete object {name}")
+
+
+# def SpawnObject(
+    # name,
+    # object_xml,
+    # x=0,
+    # y=0,
+    # z=0,
+    # roll=0,
+    # pitch=0,
+    # yaw=0,
+    # file_type="sdf",
+    # ref_frame="map",  # TODO, FIX DOCUMENTATION AND RETURN VALS
+# ):
+
+    # rospy.loginfo(f"Loading model XML from file")
+    # model_xml = object_xml
+
+    # if not os.path.exists(model_xml):
+        # rospy.logfatal("Error: specified file %s does not exist", model_xml)
+        # return False
+    # if not os.path.isfile(model_xml):
+        # rospy.logfatal("Error: specified file %s is not a file", model_xml)
+        # return False
+
+    # try:
+        # f = open(model_xml, "r")
+        # model_xml = f.read()
+
+    # except IOError as e:
+        # rospy.logerr(f"Error reading file {model_xml}: {e}")
+        # return False
+    # if model_xml == "":
+        # rospy.logerr(f"Error: file {model_xml} is empty")
+        # return False
+
+    # try:
+        # xml_parsed = xml.etree.ElementTree.fromstring(model_xml)
+    # except xml.etree.ElementTree.ParseError as e:
+        # rospy.logerr(f"Invalid XML: {e}")
+        # return False
+
+    # model_xml = xml.etree.ElementTree.tostring(xml_parsed)
+
+    # if not isinstance(model_xml, str):
+        # model_xml = model_xml.decode(encoding="ascii")
+
+    # initial_pose = Pose()
+    # initial_pose.position.x = x
+    # initial_pose.position.y = y
+    # initial_pose.position.z = z
+    # q = quaternion_from_euler(roll, pitch, yaw)
+    # initial_pose.orientation = Quaternion(*q)
+
+    # if file_type == "urdf":
+        # success = gazebo_interface.spawn_urdf_model_client(
+            # name,
+            # model_xml,
+            # rospy.get_namespace(),
+            # initial_pose,
+            # ref_frame,
+            # "/gazebo",
+        # )
+
+    # elif file_type == "sdf":
+        # success = gazebo_interface.spawn_sdf_model_client(
+            # name,
+            # model_xml,
+            # rospy.get_namespace(),
+            # initial_pose,
+            # ref_frame,
+            # "/gazebo",
+        # )
+    # else:
+        # success = False
+
+    # if not success:
+        # rospy.logerr("Spawn service failed. Exiting")
+        # return success
+
 
 
 def SpawnObject(
@@ -44,69 +130,104 @@ def SpawnObject(
     yaw=0,
     file_type="sdf",
     ref_frame="map",  # TODO, FIX DOCUMENTATION AND RETURN VALS
+    timeout=5.0,
+    node = None
 ):
+    """
+    Returns exit code, 1 for failure, 0 for success
+    """
 
-    rospy.loginfo(f"Loading model XML from file")
-    model_xml = object_xml
-
-    if not os.path.exists(model_xml):
-        rospy.logfatal("Error: specified file %s does not exist", model_xml)
-        return False
-    if not os.path.isfile(model_xml):
-        rospy.logfatal("Error: specified file %s is not a file", model_xml)
-        return False
-
+    # Load entity XML from file
+    print('Loading entity XML from file %s' % object_xml)
+    if not os.path.exists(object_xml):
+        print('Error: specified file %s does not exist', object_xml)
+        return 1
+    if not os.path.isfile(object_xml):
+        print('Error: specified file %s is not a file', object_xml)
+        return 1
+    # load file
     try:
-        f = open(model_xml, "r")
-        model_xml = f.read()
-
+        f = open(object_xml, 'r')
+        entity_xml = f.read()
     except IOError as e:
-        rospy.logerr(f"Error reading file {model_xml}: {e}")
-        return False
-    if model_xml == "":
-        rospy.logerr(f"Error: file {model_xml} is empty")
-        return False
+        print('Error reading file {}: {}'.format(self.args.file, e))
+        return 1
+    if entity_xml == '':
+        print('Error: file %s is empty', self.args.file)
+        return 1
 
+    # Parse xml to detect invalid xml before sending to gazebo
     try:
-        xml_parsed = xml.etree.ElementTree.fromstring(model_xml)
-    except xml.etree.ElementTree.ParseError as e:
-        rospy.logerr(f"Invalid XML: {e}")
+        xml_parsed = ElementTree.fromstring(entity_xml)
+    except ElementTree.ParseError as e:
+        print('Invalid XML: {}'.format(e))
+        return 1
+
+    # Encode xml object back into string for service call
+    entity_xml = ElementTree.tostring(xml_parsed)
+
+    # Form requested Pose from arguments
+    initial_pose = Pose()
+    initial_pose.position.x = float(x)
+    initial_pose.position.y = float(y)
+    initial_pose.position.z = float(z)
+
+    q = quaternion_from_euler(roll, pitch, yaw)
+    initial_pose.orientation.w = q[0]
+    initial_pose.orientation.x = q[1]
+    initial_pose.orientation.y = q[2]
+    initial_pose.orientation.z = q[3]
+
+    spawn_service_timeout = timeout
+    success = _spawn_entity(name, node, entity_xml, initial_pose, spawn_service_timeout, reference_frame=ref_frame)
+    if not success:
+        print('Spawn service failed. Exiting.')
+        return 1
+
+    return 0
+
+def _spawn_entity(name, node, entity_xml, initial_pose, timeout=5.0, reference_frame="", gazebo_namespace="", robot_namespace=""):
+    if timeout < 0:
+        node.get_logger().info('spawn_entity timeout must be greater than zero')
         return False
 
-    model_xml = xml.etree.ElementTree.tostring(xml_parsed)
+    node.get_logger.error()('Waiting for service %s/spawn_entity' % gazebo_namespace)
 
-    if not isinstance(model_xml, str):
-        model_xml = model_xml.decode(encoding="ascii")
+    client = node.create_client(SpawnEntity, '%s/spawn_entity' % gazebo_namespace)
+    if client.wait_for_service(timeout_sec=timeout):
+        req = SpawnEntity.Request()
+        req.name = name 
+        req.xml = str(entity_xml, 'utf-8')
+        req.robot_namespace = robot_namespace
+        req.initial_pose = initial_pose
+        req.reference_frame = reference_frame
+        print('Calling service %s/spawn_entity' % gazebo_namespace)
 
-    initial_pose = Pose()
-    initial_pose.position.x = x
-    initial_pose.position.y = y
-    initial_pose.position.z = z
-    q = quaternion_from_euler(roll, pitch, yaw)
-    initial_pose.orientation = Quaternion(*q)
+        srv_call = client.call_async(req)
+        while rclpy.ok():
+            if srv_call.done():
+                print('Spawn status: %s' % srv_call.result().status_message)
+                break
+            rclpy.spin_once(node)
 
-    if file_type == "urdf":
-        success = gazebo_interface.spawn_urdf_model_client(
-            name,
-            model_xml,
-            rospy.get_namespace(),
-            initial_pose,
-            ref_frame,
-            "/gazebo",
-        )
+        return srv_call.result().success
+    print('Service %s/spawn_entity unavailable. Was Gazebo started with GazeboRosFactory?')
 
-    elif file_type == "sdf":
-        success = gazebo_interface.spawn_sdf_model_client(
-            name,
-            model_xml,
-            rospy.get_namespace(),
-            initial_pose,
-            ref_frame,
-            "/gazebo",
-        )
-    else:
-        success = False
+    return False
 
-    if not success:
-        rospy.logerr("Spawn service failed. Exiting")
-        return success
+
+def quaternion_from_euler(roll, pitch, yaw):
+    cy = math.cos(yaw * 0.5)
+    sy = math.sin(yaw * 0.5)
+    cp = math.cos(pitch * 0.5)
+    sp = math.sin(pitch * 0.5)
+    cr = math.cos(roll * 0.5)
+    sr = math.sin(roll * 0.5)
+
+    q = [0] * 4
+    q[0] = cy * cp * cr + sy * sp * sr
+    q[1] = cy * cp * sr - sy * sp * cr
+    q[2] = sy * cp * sr + cy * sp * cr
+    q[3] = sy * cp * cr - cy * sp * sr
+
+    return q
