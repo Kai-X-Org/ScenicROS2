@@ -15,7 +15,8 @@ from geometry_msgs.msg import (
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 # from geometry_msgs.msg import Quaternion
-import rospy
+# import rospy
+import rclpy
 
 # import tf_conversions
 import numpy as np
@@ -23,13 +24,13 @@ import tf2_geometry_msgs
 import tf2_ros
 
 
-def GetObjectPose(obj, frame="map"):  # works
+def GetObjectPose(obj, node, frame="map"):  # works
     """
     String obj: the name of the object
     String frame: the reference frame for the pose
     Returns: dictionary containing pose information
     """
-    state = GetObjectGazeboState(obj, frame=frame)
+    state = GetObjectGazeboState(obj, node frame=frame)
     if state:
         pos = state.pose.position
         ori = state.pose.orientation
@@ -40,7 +41,7 @@ def GetObjectPose(obj, frame="map"):  # works
     return None
 
 
-def GetObjectState(obj, frame="map"):
+def GetObjectState(obj, node, frame="map"):
     """
     Probably what you want to call to get an object's current states
     String obj: the name of the object
@@ -48,7 +49,7 @@ def GetObjectState(obj, frame="map"):
     Returns: dictionary containing state information
     """
     try:
-        state = GetObjectGazeboState(obj, frame)
+        state = GetObjectGazeboState(obj, node, frame)
         if state:
             pos = state.pose.position
             ori = state.pose.orientation
@@ -73,27 +74,27 @@ def GetObjectState(obj, frame="map"):
         raise e
 
 
-def GetObjectGazeboState(obj, frame="map"):
+def GetObjectGazeboState(obj, node, frame="map"):
     """
     String obj: the name of the object
     String frame: the reference frame for the pose
     Returns: gazebo_msgs.msg.ModelState
     """
     try:
-        try:
-            frame = settings.get_frame(frame)
-        except:
-            frame = frame
 
-        rospy.wait_for_service("/gazebo/get_entity_state")
-        get_model_state = rospy.ServiceProxy("/gazebo/get_entity_state", GetEntityState)
-        state = get_model_state(obj, frame)
-        return state
+        client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
+        while not client.wait_for_service(timeout_sec=1.0):
+            node.get_logger().info('service not available, waiting again...')
+        
+        # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
+        resp = client.call_async(obj, frame)
+        rclpy.spin_until_future_complete(node, resp)
+        return resp
 
     except Exception as e:
-        rospy.logerr("GetObjectGazeboState Fail go")
+        node.get_logger().error("GetObjectGazeboState Fail go")
         raise RuntimeError(
-            f"Failed to get {obj.name} state; Gazebo\
+            f"Failed to get obj.namer state; Gazebo\
                            get_model_state service failed with exception {e}"
         )
 
@@ -118,9 +119,17 @@ def SetModelPose(
     except:
         frame = ref_frame_id
 
-    rospy.wait_for_service("/gazebo/get_entity_state")
-    get_model_state = rospy.ServiceProxy("/gazebo/get_entity_state", GetEntityState)
-    model_state = get_model_state(tgt_model, "")
+    # rospy.wait_for_service("/gazebo/get_entity_state")
+    # get_model_state = rospy.ServiceProxy("/gazebo/get_entity_state", GetEntityState)
+    # model_state = get_model_state(tgt_model, "")
+
+    client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
+    while not client.wait_for_service(timeout_sec=1.0):
+        node.get_logger().info('service not available, waiting again...')
+    
+    # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
+    resp = client.call_async(obj, frame)
+    rclpy.spin_until_future_complete(node, resp)
 
     quat = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
 
@@ -139,9 +148,18 @@ def SetModelPose(
     new_model_state.twist = geometry_msgs.Twist()
     new_model_state.reference_frame = frame
 
-    rospy.wait_for_service("/gazebo/set_entity_state")
-    set_state = rospy.ServiceProxy("/gazebo/set_entity_state", SetEntityState)
-    resp = set_state(new_model_state)
+    # rospy.wait_for_service("/gazebo/set_entity_state")
+    # set_state = rospy.ServiceProxy("/gazebo/set_entity_state", SetEntityState)
+    # resp = set_state(new_model_state)
+
+    client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
+    while not client.wait_for_service(timeout_sec=1.0):
+        node.get_logger().info('service not available, waiting again...')
+    
+    # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
+    resp = client.call_async(obj, frame)
+    rclpy.spin_until_future_complete(node, resp)
+
     return (resp.success, resp.status_message)
 
 
