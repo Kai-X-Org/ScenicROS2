@@ -87,8 +87,11 @@ def GetObjectGazeboState(obj, node, frame="map"):
             node.get_logger().info('service not available, waiting again...')
         
         # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
-        resp = client.call_async(obj, frame)
-        rclpy.spin_until_future_complete(node, resp)
+        req = GetEntityState.Request()
+        req.name = obj
+        req.reference_frame = frame
+        resp = client.call_async(req)
+        rclpy.spin_until_future_complete(node, resp) 
         return resp
 
     except Exception as e:
@@ -128,7 +131,10 @@ def SetModelPose(
         node.get_logger().info('service not available, waiting again...')
     
     # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
-    resp = client.call_async(obj, frame)
+    req = GetEntityState.Request()
+    req.name = obj
+    req.reference_frame = frame
+    resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)
 
     quat = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
@@ -157,7 +163,10 @@ def SetModelPose(
         node.get_logger().info('service not available, waiting again...')
     
     # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
-    resp = client.call_async(obj, frame)
+    req = GetEntityState.Request()
+    req.name = obj
+    req.reference_frame = frame
+    resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)
 
     return (resp.success, resp.status_message)
