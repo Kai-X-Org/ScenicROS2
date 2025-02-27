@@ -31,7 +31,8 @@ def DeleteObject(name, node, sim=None):
         client = node.create_client(DeleteEntity, "/delete_entity")
         while not client.wait_for_service(timeout_sec=1.0):
             node.get_logger().info('service not available, waiting again...')
-
+        
+        # req = DeleteEntity.Request()
         resp = client.call_async(name)
         return (resp.success, resp.status_message)
 

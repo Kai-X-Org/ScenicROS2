@@ -9,20 +9,19 @@ import actionlib
 from gazebo_msgs.srv import DeleteModel
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist
 import numpy as np
-import roslaunch
-import rospy
+# import rospy
+import rclpy
+# from rclpy.node import Node
 from tf.transformations import euler_from_quaternion
 
 import scenic.core.errors as errors
 from scenic.core.simulators import Simulation, SimulationCreationError, Simulator
 from scenic.core.vectors import Vector
-from scenic.domains.driving.simulators import DrivingSimulation, DrivingSimulator
 from scenic.simulators.Gazebo.utils.spawn_delete_model import DeleteObject, SpawnObject
 from scenic.simulators.Gazebo.utils.start_gazebo import (
-    CreateSimLaunchParent,
     PauseGazebo,
     ResetGazeboWorld,
-    ResetGazeboWorldAndSim,
+    # ResetGazeboWorldAndSim,
     UnpauseGazebo,
 )
 from scenic.simulators.Gazebo.utils.state_utils import ( 
@@ -91,8 +90,11 @@ class GazeboSimulator(Simulator):
         self.scenario_number = 0
 
         # TODO Decide the form of your client
-        rospy.init_node("scenic", anonymous=True)
-        self.client = dict()
+        # rospy.init_node("scenic", anonymous=True)
+        # self.node = Node("Scenic")
+        rclpy.init()
+        self.node = rclpy.create_node("scenic")
+        self.client = self.node
 
     def createSimulation(self, scene, timestep, **kwargs):
         if timestep is not None and timestep != self.timestep:
@@ -123,7 +125,9 @@ class GazeboSimulation(Simulation):
     """
 
     def __init__(self, scene, client, render, record, timestep=0.1, **kwargs):
-        self.client = client
+        # self.client = client
+        self.node = client
+        self.rate = self.node.create_rate(10)
         self.render = True
         self.record = record
         self.timestep = timestep
@@ -168,6 +172,7 @@ class GazeboSimulation(Simulation):
             success = SpawnObject(
                 obj.name,
                 object_xml=obj.description_file,
+                self.node,
                 x=x,
                 y=y,
                 z=z,
@@ -176,7 +181,8 @@ class GazeboSimulation(Simulation):
                 yaw=yaw,
                 file_type=obj.description_file_type,
             )
-            rospy.sleep(0.1)
+            # rospy.sleep(0.1)
+            self.rate.sleep()
 
         else:
             # TODO implement how you would like to spawn the robot
@@ -207,26 +213,26 @@ class GazeboSimulation(Simulation):
         # TODO: if you implemented your actions' applyTo to return anything
         # other than a function taking no arguments, change this piece of code
         # such that the action is properly executed
-        UnpauseGazebo()
-        t0 = rospy.get_rostime()
+        # UnpauseGazebo(node)
+        # t0 = rospy.get_rostime()
 
-        for a in self.step_actions:
-            try:
-                a()
-            except Exception as e:
-                print(
-                    f"Failed to execute action, proceed to next action, exception\n{str(e)}"
-                )
-                logging.error(traceback.format_exc())
-        self.step_actions = []
+        # for a in self.step_actions:
+            # try:
+                # a()
+            # except Exception as e:
+                # print(
+                    # f"Failed to execute action, proceed to next action, exception\n{str(e)}"
+                # )
+                # logging.error(traceback.format_exc())
+        # self.step_actions = []
 
-        t1 = rospy.get_rostime()
-        time_elapsed = t1 - t0
-        while time_elapsed.to_sec() < self.timestep:
-            t1 = rospy.get_rostime()
-            time_elapsed = t1 - t0
+        # t1 = rospy.get_rostime()
+        # time_elapsed = t1 - t0
+        # while time_elapsed.to_sec() < self.timestep:
+            # t1 = rospy.get_rostime()
+            # time_elapsed = t1 - t0
 
-        PauseGazebo()
+        # PauseGazebo(self.node)
         return
 
     def getProperties(self, obj, properties):
@@ -235,7 +241,7 @@ class GazeboSimulation(Simulation):
         Not directly called by the user
         """
         try:
-            obj_gazebo_state = GetObjectState(obj.name)
+            obj_gazebo_state = GetObjectState(obj.name, self.node)
             pose = (
                 obj_gazebo_state["x"],
                 obj_gazebo_state["y"],
@@ -268,16 +274,17 @@ class GazeboSimulation(Simulation):
     def destroy(self):
         # TODO add in any special object destruction code as needed
         if self.render:
-            PauseGazebo()  # Finally, pause Gazebo
+            PauseGazebo(self.node)  # Finally, pause Gazebo
             for obj in self.objects:  # Delte all objects spawned by scenic
                 if (
                     obj.object_type != "robot"
                 ):  # TODO robots are not deleted by default, change this as needed
-                    success, status_message = DeleteObject(obj.name, sim=self)
+                    success, status_message = DeleteObject(obj.name, node, sim=self)
                     print(f"Deleted Model: {success}\nStatus Message:{status_message}")
-            ResetGazeboWorld()
-            UnpauseGazebo()
-            rospy.sleep(3.0)
+            ResetGazeboWorld(self.node)
+            UnpauseGazebo(self.node)
+            # rospy.sleep(3.0)
+            self.rate.sleep()
         super().destroy()
         return
 
