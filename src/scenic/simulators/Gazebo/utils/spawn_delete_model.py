@@ -1,20 +1,24 @@
 
-import os
-import xml
 import math
-from xml.etree import ElementTree
+import os
+import sys
 
 from gazebo_msgs.msg import ModelStates
-from gazebo_msgs.srv import SpawnEntity, DeleteEntity
-from gazebo_ros import gazebo_interface
+from gazebo_msgs.srv import DeleteEntity
+# from gazebo_msgs.srv import SetModelConfiguration
+from gazebo_msgs.srv import SpawnEntity
+# from geometry_msgs.msg import Pose
+from lxml import etree as ElementTree
+import rclpy
+from rclpy.node import Node
+from rclpy.qos import QoSDurabilityPolicy
+from rclpy.qos import QoSProfile
+from std_msgs.msg import String
+from std_srvs.srv import Empty
+
 from geometry_msgs.msg import Pose, Quaternion
 
-import rclpy
-
-import scenic
-
-
-def DeleteObject(name, node=None, sim=None):
+def DeleteObject(name, node, sim=None):
     """
     deletes the object from Gazebo and collision world
     Args:
@@ -38,6 +42,7 @@ def DeleteObject(name, node=None, sim=None):
 def SpawnObject(
     name,
     object_xml,
+    node,
     x=0,
     y=0,
     z=0,
@@ -47,7 +52,6 @@ def SpawnObject(
     file_type="sdf",
     ref_frame="map",  # TODO, FIX DOCUMENTATION AND RETURN VALS
     timeout=5.0,
-    node=None
 ):
     """
     Returns exit code, 1 for failure, 0 for success

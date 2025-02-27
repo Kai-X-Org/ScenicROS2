@@ -101,7 +101,7 @@ def GetObjectGazeboState(obj, node, frame="map"):
 
 
 def SetModelPose(
-    tgt_model, x=0.0, y=0.0, z=0.0, roll=0, pitch=0, yaw=0.0, frame="map"
+    tgt_model, node, x=0.0, y=0.0, z=0.0, roll=0, pitch=0, yaw=0.0, frame="map"
 ):  # Good
     """
     Set the Model's Pose
@@ -185,23 +185,23 @@ def ApplyROSTransform(transform, x=0, y=0, z=0, quat=(0, 0, 0, 1)):
     return new_pose.pose
 
 
-def ListenToTransform(source, target):
-    """
-    Get the ROS transform from the source frame to the target frame
-    Args:
-        source: String
-            The source frame of reference
-        target: Target
-            The target frame of reference
-    Returns:
-        trans: rospy.TransformStamped
-    """
-    tfBuffer = tf2_ros.Buffer()
-    listener = tf2_ros.TransformListener(tfBuffer)
-    while not rospy.is_shutdown():
-        try:
-            trans = tfBuffer.lookup_transform(source, target, rospy.Time())
-            break
-        except:
-            continue
-    return trans
+# def ListenToTransform(source, target):
+    # """
+    # Get the ROS transform from the source frame to the target frame
+    # Args:
+        # source: String
+            # The source frame of reference
+        # target: Target
+            # The target frame of reference
+    # Returns:
+        # trans: rospy.TransformStamped
+    # """
+    # tfBuffer = tf2_ros.Buffer()
+    # listener = tf2_ros.TransformListener(tfBuffer)
+    # while not rospy.is_shutdown():
+        # try:
+            # trans = tfBuffer.lookup_transform(source, target, rospy.Time())
+            # break
+        # except:
+            # continue
+    # return trans
