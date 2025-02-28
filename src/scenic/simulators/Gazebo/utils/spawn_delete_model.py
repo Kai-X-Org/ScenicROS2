@@ -36,7 +36,8 @@ def DeleteObject(name, node, sim=None):
         req.name = name
         resp = client.call_async(req)
         # resp = client.call_async(name)
-        return (resp.success, resp.status_message)
+        # result = resp.result()
+        # return (result.success, result.status_message)
 
     except Exception as e:
         node.get_logger().error("DeleteObject Fail Go")

@@ -66,4 +66,6 @@ class BookShelf(GazeboObject):
     object_type: "book_shelf"
     description_file: '/home/colcon_ws/src/aws-robomaker-hospital-world/models/aws_robomaker_retail_BookshelfB_01/model.sdf'
     description_file_type: 'sdf'
+    length: 2
+    width : 1
     

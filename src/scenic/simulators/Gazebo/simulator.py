@@ -277,8 +277,9 @@ class GazeboSimulation(Simulation):
                 if (
                     obj.object_type != "robot"
                 ):  # TODO robots are not deleted by default, change this as needed
-                    success, status_message = DeleteObject(obj.name, self.node, sim=self)
-                    print(f"Deleted Model: {success}\nStatus Message:{status_message}")
+                    # success, status_message = DeleteObject(obj.name, self.node, sim=self)
+                    DeleteObject(obj.name, self.node, sim=self)
+                    print(f"Deleted Model: {obj.name}")
             ResetGazeboWorld(self.node)
             UnpauseGazebo(self.node)
             # rospy.sleep(3.0)
@@ -332,7 +333,10 @@ class GazeboSimulation(Simulation):
         obj: the scenic object
         """
         # assert len(pose) == 4
-        return self.RobotToGazeboMap(self.ScenicToRobotMap(pose, obj=obj))
+        # return self.RobotToGazeboMap(self.ScenicToRobotMap(pose, obj=obj))
+        x, y, z, roll, pitch, yaw = pose
+        yaw += np.pi/2
+        return (x, y, z, roll, pitch, yaw)
 
     def GazeboToScenicMap(self, pose, obj=None):
         """
@@ -342,4 +346,7 @@ class GazeboSimulation(Simulation):
         obj: the scenic object
         """
         # assert len(pose) == 4
-        return self.RobotToScenicMap(self.GazeboToRobotMap(pose), obj=obj)
+        # return self.RobotToScenicMap(self.GazeboToRobotMap(pose), obj=obj)
+        x, y, z, roll, pitch, yaw = pose
+        yaw -= np.pi/2
+        return (x, y, z, roll, pitch, yaw)
