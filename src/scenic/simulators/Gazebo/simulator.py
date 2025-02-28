@@ -171,7 +171,7 @@ class GazeboSimulation(Simulation):
             print(x, y, z, yaw)
             success = SpawnObject(
                 obj.name,
-                object_xml=obj.description_file,
+                obj.description_file,
                 self.node,
                 x=x,
                 y=y,
@@ -267,7 +267,7 @@ class GazeboSimulation(Simulation):
             return d
 
         except Exception as e:
-            raise RobotSimRuntimeError(
+            raise GazeboSimRuntimeError(
                 f"Failed to get {obj.name} states. An exception occured: {e}", e
             )
 
@@ -279,7 +279,7 @@ class GazeboSimulation(Simulation):
                 if (
                     obj.object_type != "robot"
                 ):  # TODO robots are not deleted by default, change this as needed
-                    success, status_message = DeleteObject(obj.name, node, sim=self)
+                    success, status_message = DeleteObject(obj.name, self.node, sim=self)
                     print(f"Deleted Model: {success}\nStatus Message:{status_message}")
             ResetGazeboWorld(self.node)
             UnpauseGazebo(self.node)
