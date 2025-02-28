@@ -13,7 +13,10 @@ from geometry_msgs.msg import (
     Vector3,
     Twist
 )
-# from tf.transformations import euler_from_quaternion, quaternion_from_euler
+
+from scipy.spatial.transform import Rotation
+
+# from tf2_ros.transformations import euler_from_quaternion, quaternion_from_euler
 
 # from geometry_msgs.msg import Quaternion
 # import rospy
@@ -69,9 +72,11 @@ def GetObjectState(obj, node, frame="map"):
                 angularSpeed=np.linalg.norm(np.array([angular.x, angular.y, angular.z])),
                 angularVelocity=angular,
             )
+            # node.get_logger().info(f"STATE IS: {state}")
         return state
     except Exception as e:
-        rospy.logerr("GetObjectState Fail go")
+        # rospy.logerr("GetObjectState Fail go")
+        node.get_logger().error("GetObjectState Fail Go")
         raise e
 
 
@@ -93,8 +98,8 @@ def GetObjectGazeboState(obj, node, frame="map"):
         req.reference_frame = frame
         resp = client.call_async(req)
         rclpy.spin_until_future_complete(node, resp) 
-        print(f"RESP result {resp.result()}")
-        return resp
+        # print(f"RESP result {resp.result()}")
+        return resp.result().state
 
     except Exception as e:
         node.get_logger().error("GetObjectGazeboState Fail go")
@@ -228,3 +233,10 @@ def quaternion_from_euler(roll, pitch, yaw):
     q[3] = sy * cp * cr - cy * sp * sr
 
     return q
+
+
+def euler_from_quaternion(quat):
+    rot = Rotation.from_quat(quat)
+    rot_euler = rot.as_euler('xyz', degrees=True)
+    return rot_euler
+

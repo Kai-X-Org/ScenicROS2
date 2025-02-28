@@ -249,7 +249,7 @@ class GazeboSimulation(Simulation):
                 obj_gazebo_state["yaw"],
             )
 
-            pose = self.GazeboToScenicMap(pose, obj=obj)
+            # pose = self.GazeboToScenicMap(pose, obj=obj)
             v = obj_gazebo_state["velocity"]
             w = obj_gazebo_state["angularVelocity"]
             d = dict(
