@@ -125,7 +125,7 @@ class GazeboSimulation(Simulation):
     def __init__(self, scene, client, render, record, timestep=0.1, **kwargs):
         # self.client = client
         self.node = client
-        self.rate = self.node.create_rate(10)
+        self.rate = self.node.create_rate(1/timestep)
         self.render = True
         self.record = record
         self.timestep = timestep
@@ -231,6 +231,8 @@ class GazeboSimulation(Simulation):
             # time_elapsed = t1 - t0
 
         # PauseGazebo(self.node)
+
+        self.rate.sleep() # to maintain a steady rate
         return
 
     def getProperties(self, obj, properties):
