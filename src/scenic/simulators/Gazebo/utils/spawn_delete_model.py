@@ -30,7 +30,7 @@ def DeleteObject(name, node, sim=None):
     try:
         client = node.create_client(DeleteEntity, "/delete_entity")
         while not client.wait_for_service(timeout_sec=1.0):
-            node.get_logger().info('service not available, waiting again...')
+            node.get_logger().info('delete service not available, waiting again...')
         
         req = DeleteEntity.Request()
         req.name = name
@@ -106,7 +106,6 @@ def SpawnObject(
     if not success:
         print('Spawn service failed. Exiting.')
         return 1
-
     return 0
 
 def _spawn_entity(name, node, entity_xml, initial_pose, timeout=5.0, reference_frame="", gazebo_namespace="", robot_namespace=""):
@@ -114,7 +113,7 @@ def _spawn_entity(name, node, entity_xml, initial_pose, timeout=5.0, reference_f
         node.get_logger().info('spawn_entity timeout must be greater than zero')
         return False
 
-    node.get_logger().info()('Waiting for service %s/spawn_entity' % gazebo_namespace)
+    node.get_logger().info('Waiting for service %s/spawn_entity' % gazebo_namespace)
 
     client = node.create_client(SpawnEntity, '%s/spawn_entity' % gazebo_namespace)
     if client.wait_for_service(timeout_sec=timeout):

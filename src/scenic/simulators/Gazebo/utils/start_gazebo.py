@@ -1,5 +1,4 @@
 from gazebo_msgs.srv import DeleteModel
-import roslaunch
 import rclpy
 from std_srvs.srv import Empty
 
@@ -9,9 +8,9 @@ def PauseGazebo(node):
     """
     client = node.create_client(Empty, '/pause_physics')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
-
-    resp = client.call_async()
+        node.get_logger().info('pause service not available, waiting again...')
+    req = Empty.Request()
+    resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)
 
     return
@@ -23,9 +22,10 @@ def UnpauseGazebo(node):
     """
     client = node.create_client(Empty, '/unpause_physics')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
+        node.get_logger().info('unpause service not available, waiting again...')
 
-    resp = client.call_async()
+    req = Empty.Request()
+    resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)
     return
 
@@ -45,16 +45,18 @@ def ResetGazeboWorldAndSim(node):
     # reset_simulation()
     client = node.create_client(Empty, '/reset_world')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
-
-    resp = client.call_async()
+        node.get_logger().info('reset world service not available, waiting again...')
+    
+    req = Empty.Request()
+    resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)
 
     client = node.create_client(Empty, '/reset_simulation')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
+        node.get_logger().info('reset sim service not available, waiting again...')
 
-    resp = client.call_async()
+    req = Empty.Request()
+    resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)
     return
 
@@ -66,7 +68,8 @@ def ResetGazeboWorld(node):
     """
     client = node.create_client(Empty, '/reset_world')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
+        node.get_logger().info('reset world service not available, waiting again...')
 
-    resp = client.call_async()
+    req = Empty.Request()
+    resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)

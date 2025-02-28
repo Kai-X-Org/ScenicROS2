@@ -85,7 +85,7 @@ def GetObjectGazeboState(obj, node, frame="map"):
 
         client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
         while not client.wait_for_service(timeout_sec=1.0):
-            node.get_logger().info('service not available, waiting again...')
+            node.get_logger().info('get_entity_states service not available, waiting again...')
         
         # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
         req = GetEntityState.Request()
@@ -125,7 +125,7 @@ def SetModelPose(
 
     client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
+        node.get_logger().info('get_entity_states service not available, waiting again...')
     
     # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
     req = GetEntityState.Request()
@@ -157,7 +157,7 @@ def SetModelPose(
 
     client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
+        node.get_logger().info('get_entity_states service not available, waiting again...')
     
     # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
     req = GetEntityState.Request()
