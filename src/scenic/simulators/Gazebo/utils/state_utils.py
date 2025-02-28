@@ -93,6 +93,7 @@ def GetObjectGazeboState(obj, node, frame="map"):
         req.reference_frame = frame
         resp = client.call_async(req)
         rclpy.spin_until_future_complete(node, resp) 
+        print(f"RESP result {resp.result()}")
         return resp
 
     except Exception as e:
