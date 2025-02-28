@@ -73,10 +73,10 @@ def SpawnObject(
         f = open(object_xml, 'r')
         entity_xml = f.read()
     except IOError as e:
-        print('Error reading file {}: {}'.format(self.args.file, e))
+        print('Error reading file')
         return 1
     if entity_xml == '':
-        print('Error: file %s is empty', self.args.file)
+        print('Error: file is empty')
         return 1
 
     # Parse xml to detect invalid xml before sending to gazebo

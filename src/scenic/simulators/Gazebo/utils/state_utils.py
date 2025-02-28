@@ -11,8 +11,9 @@ from geometry_msgs.msg import (
     PoseWithCovarianceStamped,
     TransformStamped,
     Vector3,
+    Twist
 )
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
+# from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 # from geometry_msgs.msg import Quaternion
 # import rospy
@@ -30,7 +31,7 @@ def GetObjectPose(obj, node, frame="map"):  # works
     String frame: the reference frame for the pose
     Returns: dictionary containing pose information
     """
-    state = GetObjectGazeboState(obj, node frame=frame)
+    state = GetObjectGazeboState(obj, node, frame=frame)
     if state:
         pos = state.pose.position
         ori = state.pose.orientation
@@ -117,10 +118,6 @@ def SetModelPose(
     Returns: Typle(bool success, String status_message)
     """
     ref_frame_id = frame
-    try:
-        frame = settings.get_frame(frame)
-    except:
-        frame = ref_frame_id
 
     # rospy.wait_for_service("/gazebo/get_entity_state")
     # get_model_state = rospy.ServiceProxy("/gazebo/get_entity_state", GetEntityState)
@@ -132,12 +129,12 @@ def SetModelPose(
     
     # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
     req = GetEntityState.Request()
-    req.name = obj
+    req.name = tgt_model
     req.reference_frame = frame
     resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)
 
-    quat = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
+    quat = quaternion_from_euler(roll, pitch, yaw)
 
     new_pose = Pose()
     new_pose.position.x = x
@@ -164,7 +161,7 @@ def SetModelPose(
     
     # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
     req = GetEntityState.Request()
-    req.name = obj
+    req.name = tgt_model
     req.reference_frame = frame
     resp = client.call_async(req)
     rclpy.spin_until_future_complete(node, resp)
@@ -214,3 +211,19 @@ def ApplyROSTransform(transform, x=0, y=0, z=0, quat=(0, 0, 0, 1)):
         # except:
             # continue
     # return trans
+
+def quaternion_from_euler(roll, pitch, yaw):
+    cy = math.cos(yaw * 0.5)
+    sy = math.sin(yaw * 0.5)
+    cp = math.cos(pitch * 0.5)
+    sp = math.sin(pitch * 0.5)
+    cr = math.cos(roll * 0.5)
+    sr = math.sin(roll * 0.5)
+
+    q = [0] * 4
+    q[0] = cy * cp * cr + sy * sp * sr
+    q[1] = cy * cp * sr - sy * sp * cr
+    q[2] = sy * cp * sr + cy * sp * cr
+    q[3] = sy * cp * cr - cy * sp * sr
+
+    return q
