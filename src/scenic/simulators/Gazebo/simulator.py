@@ -5,14 +5,12 @@ import os
 import traceback
 import warnings
 
-import actionlib
 from gazebo_msgs.srv import DeleteModel
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist
 import numpy as np
 # import rospy
 import rclpy
 # from rclpy.node import Node
-from tf.transformations import euler_from_quaternion
 
 import scenic.core.errors as errors
 from scenic.core.simulators import Simulation, SimulationCreationError, Simulator
@@ -163,7 +161,7 @@ class GazeboSimulation(Simulation):
         position = obj.position
         position = (position[0], position[1], position[2], obj.roll, obj.pitch, obj.yaw)
 
-        position = self.ScenicToGazeboMap(position, obj=obj)
+        # position = self.ScenicToGazeboMap(position, obj=obj)
         x, y, z, roll, pitch, yaw = position
         success = False
         if obj.object_type != "robot":

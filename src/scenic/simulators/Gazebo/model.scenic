@@ -4,9 +4,6 @@ from scenic.core.utils import repairMesh
 import os
 
 simulator GazeboSimulator()
-object_prefix = '' # TODO fill in the prefix/suffixes to where you store your sdf/urdf files
-default_file_name = "model.sdf"
-get_sdf_dir = lambda s: object_prefix +  s + "/" + default_file_name
 
 class Robot:
     """
@@ -62,3 +59,11 @@ class GazeboObject:
     length: 1
     height: 1
     positionOffset:(0, 0, 0)
+
+
+class BookShelf(GazeboObject):
+    name: "book_shelf"
+    object_type: "book_shelf"
+    description_file: '/home/colcon_ws/src/aws-robomaker-hospital-world/models/aws_robomaker_retail_BookshelfB_01/model.sdf'
+    description_file_type: 'sdf'
+    

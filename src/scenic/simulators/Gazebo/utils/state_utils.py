@@ -83,9 +83,9 @@ def GetObjectGazeboState(obj, node, frame="map"):
     """
     try:
 
-        client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
+        client = node.create_client(GetEntityState, '/gazebo/get_entity_state')
         while not client.wait_for_service(timeout_sec=1.0):
-            node.get_logger().info('get_entity_states service not available, waiting again...')
+            node.get_logger().info('get_entity_state service not available, waiting again...')
         
         # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
         req = GetEntityState.Request()
@@ -123,9 +123,9 @@ def SetModelPose(
     # get_model_state = rospy.ServiceProxy("/gazebo/get_entity_state", GetEntityState)
     # model_state = get_model_state(tgt_model, "")
 
-    client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
+    client = node.create_client(GetEntityState, '/gazebo/get_entity_state')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('get_entity_states service not available, waiting again...')
+        node.get_logger().info('get_entity_state service not available, waiting again...')
     
     # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
     req = GetEntityState.Request()
@@ -155,9 +155,9 @@ def SetModelPose(
     # set_state = rospy.ServiceProxy("/gazebo/set_entity_state", SetEntityState)
     # resp = set_state(new_model_state)
 
-    client = node.create_client(GetEntityState, '/gazebo/get_entity_states')
+    client = node.create_client(GetEntityState, '/gazebo/get_entity_state')
     while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('get_entity_states service not available, waiting again...')
+        node.get_logger().info('get_entity_state service not available, waiting again...')
     
     # TODO maybe should get an instance of GetEntityState.request and fill in the fields?
     req = GetEntityState.Request()
