@@ -161,7 +161,7 @@ class GazeboSimulation(Simulation):
         position = obj.position
         position = (position[0], position[1], position[2], obj.roll, obj.pitch, obj.yaw)
 
-        # position = self.ScenicToGazeboMap(position, obj=obj)
+        position = self.ScenicToGazeboMap(position, obj=obj)
         x, y, z, roll, pitch, yaw = position
         success = False
         if obj.object_type != "robot":
@@ -249,7 +249,7 @@ class GazeboSimulation(Simulation):
                 obj_gazebo_state["yaw"],
             )
 
-            # pose = self.GazeboToScenicMap(pose, obj=obj)
+            pose = self.GazeboToScenicMap(pose, obj=obj)
             v = obj_gazebo_state["velocity"]
             w = obj_gazebo_state["angularVelocity"]
             d = dict(
